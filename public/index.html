@@ -75,10 +75,10 @@
             .hero-banner-wrapper { padding: 0 10px; margin-bottom: 20px; }
             .hero-banner { height: 230px; border-radius: 8px; }
             .hero-slide { padding: 20px; }
-            .slider-arrow { display: none; } /* Hide arrows on touch devices for cleaner swipe/auto experience */
+            .slider-arrow { display: none; }
             
             .section-container { padding: 0 15px; }
-            .movie-grid { grid-template-columns: repeat(2, 1fr); gap: 12px; } /* 2 columns on mobile */
+            .movie-grid { grid-template-columns: repeat(2, 1fr); gap: 12px; }
             .movie-poster { height: 210px; }
             
             .bottom-nav { display: flex; }
@@ -152,6 +152,9 @@
             }
 
             movies.forEach(movie => {
+                // Priority: Use embed_link if available, otherwise fallback to drive_link
+                const playLink = (movie.embed_link && movie.embed_link.trim() !== "") ? movie.embed_link : movie.drive_link;
+
                 const card = document.createElement('div');
                 card.className = 'movie-card';
                 card.innerHTML = `
@@ -163,8 +166,8 @@
                     </div>
                     <div style="padding: 0 10px 10px 10px;">
                         <div class="movie-actions">
-                            <a href="${movie.drive_link}" target="_blank" class="action-btn play-btn">Play</a>
-                            <a href="${movie.drive_link}" download class="action-btn download-btn">Download</a>
+                            <a href="${playLink}" target="_blank" class="action-btn play-btn">Play</a>
+                            <a href="${movie.drive_link || playLink}" target="_blank" class="action-btn download-btn">Link</a>
                         </div>
                     </div>
                 `;
@@ -182,7 +185,7 @@
             if (category === 'All') {
                 displayMovies(allMovies);
             } else {
-                const filtered = allMovies.filter(m => m.category.toLowerCase() === category.toLowerCase());
+                const filtered = allMovies.filter(m => m.category && m.category.toLowerCase() === category.toLowerCase());
                 displayMovies(filtered);
             }
         }
@@ -190,7 +193,7 @@
         function filterMovies() {
             const query = document.getElementById('searchInput').value.toLowerCase();
             const filtered = allMovies.filter(m => {
-                const matchesCategory = currentCategory === 'All' || m.category.toLowerCase() === currentCategory.toLowerCase();
+                const matchesCategory = currentCategory === 'All' || (m.category && m.category.toLowerCase() === currentCategory.toLowerCase());
                 const matchesSearch = m.title.toLowerCase().includes(query);
                 return matchesCategory && matchesSearch;
             });
@@ -214,6 +217,7 @@
             wrapper.style.display = 'block';
 
             heroMovies.forEach((movie, index) => {
+                const heroPlayLink = (movie.embed_link && movie.embed_link.trim() !== "") ? movie.embed_link : movie.drive_link;
                 const slide = document.createElement('div');
                 slide.className = `hero-slide ${index === 0 ? 'active' : ''}`;
                 slide.style.backgroundImage = `url('${movie.banner_url}')`;
@@ -221,7 +225,7 @@
                     <div class="hero-content">
                         <div class="hero-title">${movie.title}</div>
                         <div class="hero-desc">StreamVibe Original | ${movie.category}</div>
-                        <a href="${movie.drive_link}" target="_blank" class="hero-play-btn">▶ Watch Now</a>
+                        <a href="${heroPlayLink}" target="_blank" class="hero-play-btn">▶ Watch Now</a>
                     </div>
                 `;
                 slider.appendChild(slide);
