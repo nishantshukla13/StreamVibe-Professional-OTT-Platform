@@ -1,16 +1,13 @@
 require('dotenv').config();
 const express = require('express');
 const mysql = require('mysql2');
-const multer = require('multer');
 const path = require('path');
-const fs = require('fs');
 
 const app = express();
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(express.static(path.join(__dirname, 'public')));
-app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 // Explicit route to fix "Cannot GET /" on Vercel
 app.get('/', (req, res) => {
@@ -35,23 +32,6 @@ db.connect((err) => {
         return;
     }
     console.log('Connected to TiDB Cloud Database successfully!');
-});
-
-const storage = multer.diskStorage({
-    destination: (req, file, cb) => {
-        const uploadDir = path.join(__dirname, 'uploads');
-        if (!fs.existsSync(uploadDir)) {
-            fs.mkdirSync(uploadDir, { recursive: true });
-        }
-        cb(null, uploadDir);
-    },
-    filename: (req, file, cb) => {
-        cb(null, Date.now() + '-' + file.originalname);
-    }
-});
-const upload = multer({ 
-    storage: storage,
-    limits: { fileSize: 50 * 1024 * 1024 * 1024 }
 });
 
 // API: Admin Login Verification
@@ -87,8 +67,8 @@ app.post('/api/change-password', (req, res) => {
     });
 });
 
-// API: Upload Content (Supports Direct Link, Embed Link, and File Upload)
-app.post('/api/upload-content', upload.single('videoFile'), (req, res) => {
+// API: Upload Content (Supports Direct Link & Embed Link)
+app.post('/api/upload-content', (req, res) => {
     const { title, category, poster_url, banner_url, uploadType, direct_link, embed_link } = req.body;
     let mediaLink = "";
     let embedLinkVal = "";
@@ -97,10 +77,8 @@ app.post('/api/upload-content', upload.single('videoFile'), (req, res) => {
         mediaLink = direct_link || "";
     } else if (uploadType === 'embed') {
         embedLinkVal = embed_link || "";
-    } else if (req.file) {
-        mediaLink = `/uploads/${req.file.filename}`;
     } else {
-        return res.status(400).json({ success: false, message: 'No video provided!' });
+        return res.status(400).json({ success: false, message: 'No video link or embed code provided!' });
     }
 
     const query = "INSERT INTO movies (title, category, poster_url, banner_url, drive_link, embed_link) VALUES (?, ?, ?, ?, ?, ?)";
@@ -138,7 +116,7 @@ app.delete('/api/delete-movie/:id', (req, res) => {
     });
 });
 
-// Local development server runner & Vercel serverless export setup
+// Local Development Server & Vercel Serverless Export Setup
 if (process.env.NODE_ENV !== 'production') {
     const PORT = process.env.PORT || 3000;
     app.listen(PORT, () => {
