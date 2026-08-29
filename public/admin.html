@@ -126,12 +126,17 @@
                     <label>Choose Upload Source</label>
                     <select id="uploadType" onchange="toggleSourceInput()">
                         <option value="link">Doodstream / External URL Link</option>
+                        <option value="embed">Embed / Iframe Link</option>
                         <option value="file">Direct Gallery File</option>
                     </select>
                 </div>
                 <div class="form-group" id="linkSourceGroup">
                     <label>Direct Video Link</label>
                     <input type="url" id="direct_link" placeholder="Paste streaming URL">
+                </div>
+                <div class="form-group" id="embedSourceGroup" style="display:none;">
+                    <label>Embed / Iframe Link (Src URL)</label>
+                    <input type="url" id="embed_link" placeholder="Paste embed iframe src link">
                 </div>
                 <div class="form-group" id="fileSourceGroup" style="display:none;">
                     <label>Select Video File</label>
@@ -164,7 +169,6 @@
     </div>
 
     <script>
-        // Har baar page khulte hi login check karega (Koi persistent storage nahi rahegi)
         let isAuthenticated = false;
 
         document.getElementById('loginForm').addEventListener('submit', async function(e) {
@@ -184,10 +188,7 @@
             }
         });
 
-        function logoutAdmin() {
-            isAuthenticated = false;
-        }
-
+        function logoutAdmin() { isAuthenticated = false; }
         function openPassModal() { document.getElementById('passModal').style.display = 'flex'; }
         function closePassModal() { document.getElementById('passModal').style.display = 'none'; }
 
@@ -217,19 +218,16 @@
             document.getElementById('mediaUploadForm').reset();
             document.getElementById('editMovieId').value = "";
             document.getElementById('sourceSelectGroup').style.display = 'block';
+            toggleSourceInput();
             modal.style.display = 'flex';
         }
         function closeUploadModal() { modal.style.display = 'none'; }
 
         function toggleSourceInput() {
             const type = document.getElementById('uploadType').value;
-            if(type === 'link') {
-                document.getElementById('linkSourceGroup').style.display = 'block';
-                document.getElementById('fileSourceGroup').style.display = 'none';
-            } else {
-                document.getElementById('linkSourceGroup').style.display = 'none';
-                document.getElementById('fileSourceGroup').style.display = 'block';
-            }
+            document.getElementById('linkSourceGroup').style.display = type === 'link' ? 'block' : 'none';
+            document.getElementById('embedSourceGroup').style.display = type === 'embed' ? 'block' : 'none';
+            document.getElementById('fileSourceGroup').style.display = type === 'file' ? 'block' : 'none';
         }
 
         async function loadAdminContent() {
@@ -271,9 +269,11 @@
             document.getElementById('category').value = movie.category;
             document.getElementById('poster_url').value = movie.poster_url;
             document.getElementById('banner_url').value = movie.banner_url || '';
-            document.getElementById('direct_link').value = movie.drive_link;
+            document.getElementById('direct_link').value = movie.direct_link || '';
+            document.getElementById('embed_link').value = movie.embed_link || '';
             document.getElementById('sourceSelectGroup').style.display = 'none';
             document.getElementById('linkSourceGroup').style.display = 'block';
+            document.getElementById('embedSourceGroup').style.display = 'none';
             document.getElementById('fileSourceGroup').style.display = 'none';
             modal.style.display = 'flex';
         }
@@ -298,12 +298,13 @@
             const poster_url = document.getElementById('poster_url').value;
             const banner_url = document.getElementById('banner_url').value;
             const direct_link = document.getElementById('direct_link').value;
+            const embed_link = document.getElementById('embed_link').value;
 
             if(editId) {
                 const response = await fetch(`/api/update-movie/${editId}`, {
                     method: 'PUT',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ title, category, poster_url, banner_url, direct_link })
+                    body: JSON.stringify({ title, category, poster_url, banner_url, direct_link, embed_link })
                 });
                 const result = await response.json();
                 if(result.success) {
@@ -311,18 +312,23 @@
                     setTimeout(() => { closeUploadModal(); document.getElementById('modalMsg').innerText = ""; loadAdminContent(); }, 1200);
                 }
             } else {
+                const uploadType = document.getElementById('uploadType').value;
                 const formData = new FormData();
                 formData.append('title', title);
                 formData.append('category', category);
                 formData.append('poster_url', poster_url);
                 formData.append('banner_url', banner_url);
-                formData.append('uploadType', document.getElementById('uploadType').value);
-                if(document.getElementById('uploadType').value === 'link') {
+                formData.append('uploadType', uploadType);
+                
+                if(uploadType === 'link') {
                     formData.append('direct_link', direct_link);
+                } else if(uploadType === 'embed') {
+                    formData.append('embed_link', embed_link);
                 } else {
                     const fileInput = document.getElementById('videoFile');
                     if(fileInput.files[0]) { formData.append('videoFile', fileInput.files[0]); }
                 }
+                
                 const response = await fetch('/api/upload-content', { method: 'POST', body: formData });
                 const result = await response.json();
                 if(result.success) {
