@@ -1,9 +1,12 @@
 {
+  "name": "moviesite",
+  "version": "1.0.0",
+  "description": "Professional OTT Platform",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
   "dependencies": {
-<<<<<<< HEAD
-    "dotenv": "^17.4.2",
-=======
->>>>>>> 6ff66d285a1e66643aa2bcbb27f0603f07f9ac69
     "express": "^5.2.1",
     "multer": "^2.2.0",
     "mysql2": "^3.23.4"
