@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>StreamVibe - Admin Dashboard</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        body { background-color: #0b0b0b; color: #fff; padding: 40px; }
+        
+        /* Login Overlay */
+        #loginOverlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #0b0b0b; display: flex; justify-content: center; align-items: center; z-index: 9999; }
+        .login-box { background: #161616; padding: 40px; border-radius: 10px; width: 380px; border: 1px solid #333; text-align: center; }
+        .login-box h2 { color: #e50914; margin-bottom: 20px; font-size: 22px; }
+        .login-box input { width: 100%; padding: 12px; background: #222; border: 1px solid #444; color: #fff; border-radius: 5px; margin-bottom: 15px; outline: none; }
+        .login-box button { width: 100%; padding: 12px; background: #e50914; color: #fff; border: none; border-radius: 5px; font-weight: bold; cursor: pointer; }
+        .login-box button:hover { background: #ff0f1b; }
+        .login-error { color: #e50914; font-size: 13px; margin-top: 10px; }
+
+        .header-flex { display: flex; justify-content: space-between; align-items: center; margin-bottom: 40px; border-bottom: 1px solid #222; padding-bottom: 20px; }
+        h1 { color: #e50914; font-size: 26px; }
+        .nav-right-links { display: flex; gap: 15px; align-items: center; }
+        .home-link, .pass-btn { color: #aaa; text-decoration: none; font-size: 14px; background: #1a1a1a; padding: 8px 16px; border-radius: 4px; border: 1px solid #333; cursor: pointer; }
+        .home-link:hover, .pass-btn:hover { color: #fff; background: #262626; }
+
+        .admin-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 25px; margin-bottom: 40px; }
+        .upload-slot-card { background: #141414; border: 2px dashed #333; height: 280px; border-radius: 10px; display: flex; flex-direction: column; justify-content: center; align-items: center; cursor: pointer; transition: 0.3s; position: relative; overflow: hidden; }
+        .upload-slot-card:hover { border-color: #e50914; background: #181112; transform: translateY(-5px); }
+        .plus-icon { font-size: 48px; color: #e50914; margin-bottom: 10px; font-weight: 300; }
+        .slot-text { font-size: 15px; color: #888; font-weight: 600; }
+
+        .section-title { font-size: 20px; margin-bottom: 20px; color: #fff; border-left: 4px solid #e50914; padding-left: 10px; }
+        .manage-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 20px; }
+        .manage-card { background: #141414; border: 1px solid #222; border-radius: 8px; padding: 15px; display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+        .manage-info { display: flex; align-items: center; gap: 12px; }
+        .manage-info img { width: 50px; height: 70px; object-fit: cover; border-radius: 4px; }
+        .manage-details h4 { font-size: 14px; color: #fff; margin-bottom: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 140px; }
+        .manage-details p { font-size: 11px; color: #888; }
+        
+        .action-btns-group { display: flex; gap: 6px; }
+        .edit-btn { background: #333; color: #fff; border: none; padding: 6px 10px; border-radius: 4px; cursor: pointer; font-size: 11px; font-weight: bold; }
+        .delete-btn { background: #e50914; color: #fff; border: none; padding: 6px 10px; border-radius: 4px; cursor: pointer; font-size: 11px; font-weight: bold; }
+
+        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); justify-content: center; align-items: center; z-index: 2000; backdrop-filter: blur(5px); }
+        .modal-content { background: #161616; padding: 35px; border-radius: 10px; width: 450px; border: 1px solid #333; position: relative; max-height: 90vh; overflow-y: auto; }
+        .close-btn { position: absolute; top: 15px; right: 20px; font-size: 22px; cursor: pointer; color: #888; }
+        .close-btn:hover { color: #fff; }
+        .modal-content h3 { margin-bottom: 20px; color: #fff; font-size: 20px; }
+        
+        .form-group { margin-bottom: 15px; }
+        .form-group label { display: block; font-size: 12px; color: #aaa; margin-bottom: 5px; text-transform: uppercase; font-weight: bold; }
+        .form-group input, .form-group select { width: 100%; padding: 10px; background: #222; border: 1px solid #444; color: #fff; border-radius: 5px; outline: none; }
+        .submit-btn { width: 100%; padding: 12px; background: #e50914; color: #fff; font-weight: bold; border: none; border-radius: 5px; cursor: pointer; margin-top: 10px; }
+        .msg { text-align: center; margin-top: 10px; font-size: 13px; color: #2ecc71; font-weight: bold; }
+    </style>
+</head>
+<body>
+
+    <!-- PASSWORD LOGIN PROMPT -->
+    <div id="loginOverlay">
+        <div class="login-box">
+            <h2>Admin Authentication</h2>
+            <form id="loginForm">
+                <input type="password" id="adminPasswordInput" required placeholder="Enter Admin Password" autocomplete="off">
+                <button type="submit">Access Dashboard</button>
+                <p id="loginErrorMsg" class="login-error"></p>
+            </form>
+        </div>
+    </div>
+
+    <div class="header-flex">
+        <h1>Admin Studio Dashboard</h1>
+        <div class="nav-right-links">
+            <button class="pass-btn" onclick="openPassModal()">Change Password</button>
+            <a href="index.html" class="home-link" onclick="logoutAdmin()">&larr; View Live Website</a>
+        </div>
+    </div>
+
+    <div class="admin-grid" id="adminGridCards">
+        <div class="upload-slot-card" onclick="openUploadModal()">
+            <div class="plus-icon">+</div>
+            <div class="slot-text">Add New Content</div>
+        </div>
+        <div class="upload-slot-card" onclick="openUploadModal()" style="opacity: 0.6;">
+            <div class="plus-icon">+</div>
+            <div class="slot-text">Add Web Series Slot</div>
+        </div>
+        <div class="upload-slot-card" onclick="openUploadModal()" style="opacity: 0.6;">
+            <div class="plus-icon">+</div>
+            <div class="slot-text">Add Anime Slot</div>
+        </div>
+    </div>
+
+    <h3 class="section-title">Manage & Delete Uploaded Content</h3>
+    <div class="manage-list" id="manageContentList"></div>
+
+    <!-- Upload/Edit Modal -->
+    <div class="modal" id="uploadModal">
+        <div class="modal-content">
+            <span class="close-btn" onclick="closeUploadModal()">&times;</span>
+            <h3 id="modalTitle">Upload Movie / Series</h3>
+            <form id="mediaUploadForm">
+                <input type="hidden" id="editMovieId">
+                <div class="form-group">
+                    <label>Title Name</label>
+                    <input type="text" id="title" required placeholder="e.g. The Adam Project">
+                </div>
+                <div class="form-group">
+                    <label>Category Type</label>
+                    <select id="category">
+                        <option value="Movie">Movie</option>
+                        <option value="Web Series">Web Series</option>
+                        <option value="Anime">Anime</option>
+                        <option value="TV">TV Shows</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Poster Image URL</label>
+                    <input type="url" id="poster_url" required placeholder="Paste Poster Image Link">
+                </div>
+                <div class="form-group">
+                    <label>Cover Banner Image URL (Optional)</label>
+                    <input type="url" id="banner_url" placeholder="Paste Wide Banner Image Link">
+                </div>
+                <div class="form-group" id="sourceSelectGroup">
+                    <label>Choose Upload Source</label>
+                    <select id="uploadType" onchange="toggleSourceInput()">
+                        <option value="link">Doodstream / External URL Link</option>
+                        <option value="file">Direct Gallery File</option>
+                    </select>
+                </div>
+                <div class="form-group" id="linkSourceGroup">
+                    <label>Direct Video Link</label>
+                    <input type="url" id="direct_link" placeholder="Paste streaming URL">
+                </div>
+                <div class="form-group" id="fileSourceGroup" style="display:none;">
+                    <label>Select Video File</label>
+                    <input type="file" id="videoFile" accept="video/*">
+                </div>
+                <button type="submit" class="submit-btn" id="submitBtnText">Publish Content</button>
+            </form>
+            <p id="modalMsg" class="msg"></p>
+        </div>
+    </div>
+
+    <!-- Change Password Modal -->
+    <div class="modal" id="passModal">
+        <div class="modal-content" style="width: 380px;">
+            <span class="close-btn" onclick="closePassModal()">&times;</span>
+            <h3>Change Admin Password</h3>
+            <form id="changePassForm">
+                <div class="form-group">
+                    <label>Old Password</label>
+                    <input type="password" id="oldPassword" required placeholder="Enter old password">
+                </div>
+                <div class="form-group">
+                    <label>New Password</label>
+                    <input type="password" id="newPassword" required placeholder="Enter new password">
+                </div>
+                <button type="submit" class="submit-btn">Update Password</button>
+            </form>
+            <p id="passMsg" class="msg"></p>
+        </div>
+    </div>
+
+    <script>
+        // Har baar page khulte hi login check karega (Koi persistent storage nahi rahegi)
+        let isAuthenticated = false;
+
+        document.getElementById('loginForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            const password = document.getElementById('adminPasswordInput').value;
+            const res = await fetch('/api/admin-login', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ password })
+            });
+            const data = await res.json();
+            if (data.success) {
+                isAuthenticated = true;
+                document.getElementById('loginOverlay').style.display = 'none';
+            } else {
+                document.getElementById('loginErrorMsg').innerText = "Incorrect Password!";
+            }
+        });
+
+        function logoutAdmin() {
+            isAuthenticated = false;
+        }
+
+        function openPassModal() { document.getElementById('passModal').style.display = 'flex'; }
+        function closePassModal() { document.getElementById('passModal').style.display = 'none'; }
+
+        document.getElementById('changePassForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            const oldPassword = document.getElementById('oldPassword').value;
+            const newPassword = document.getElementById('newPassword').value;
+
+            const res = await fetch('/api/change-password', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ oldPassword, newPassword })
+            });
+            const data = await res.json();
+            const msgEl = document.getElementById('passMsg');
+            msgEl.style.color = data.success ? '#2ecc71' : '#e50914';
+            msgEl.innerText = data.message;
+            if(data.success) {
+                setTimeout(() => { closePassModal(); document.getElementById('changePassForm').reset(); msgEl.innerText = ''; }, 1500);
+            }
+        });
+
+        const modal = document.getElementById('uploadModal');
+        function openUploadModal() {
+            document.getElementById('modalTitle').innerText = "Upload Movie / Series";
+            document.getElementById('submitBtnText').innerText = "Publish Content";
+            document.getElementById('mediaUploadForm').reset();
+            document.getElementById('editMovieId').value = "";
+            document.getElementById('sourceSelectGroup').style.display = 'block';
+            modal.style.display = 'flex';
+        }
+        function closeUploadModal() { modal.style.display = 'none'; }
+
+        function toggleSourceInput() {
+            const type = document.getElementById('uploadType').value;
+            if(type === 'link') {
+                document.getElementById('linkSourceGroup').style.display = 'block';
+                document.getElementById('fileSourceGroup').style.display = 'none';
+            } else {
+                document.getElementById('linkSourceGroup').style.display = 'none';
+                document.getElementById('fileSourceGroup').style.display = 'block';
+            }
+        }
+
+        async function loadAdminContent() {
+            try {
+                const response = await fetch('/api/movies');
+                const movies = await response.json();
+                const container = document.getElementById('manageContentList');
+                container.innerHTML = '';
+                if(movies.length === 0) {
+                    container.innerHTML = '<p style="color: #666; font-size: 14px;">No content uploaded yet.</p>';
+                    return;
+                }
+                movies.forEach(movie => {
+                    const card = document.createElement('div');
+                    card.className = 'manage-card';
+                    card.innerHTML = `
+                        <div class="manage-info">
+                            <img src="${movie.poster_url}" alt="${movie.title}">
+                            <div class="manage-details">
+                                <h4>${movie.title}</h4>
+                                <p>${movie.category}</p>
+                            </div>
+                        </div>
+                        <div class="action-btns-group">
+                            <button class="edit-btn" onclick='openEditModal(${JSON.stringify(movie)})'>Edit</button>
+                            <button class="delete-btn" onclick="deleteMovie(${movie.id})">Delete</button>
+                        </div>
+                    `;
+                    container.appendChild(card);
+                });
+            } catch (err) { console.error("Error loading content:", err); }
+        }
+
+        function openEditModal(movie) {
+            document.getElementById('modalTitle').innerText = "Edit Movie Details";
+            document.getElementById('submitBtnText').innerText = "Update Content";
+            document.getElementById('editMovieId').value = movie.id;
+            document.getElementById('title').value = movie.title;
+            document.getElementById('category').value = movie.category;
+            document.getElementById('poster_url').value = movie.poster_url;
+            document.getElementById('banner_url').value = movie.banner_url || '';
+            document.getElementById('direct_link').value = movie.drive_link;
+            document.getElementById('sourceSelectGroup').style.display = 'none';
+            document.getElementById('linkSourceGroup').style.display = 'block';
+            document.getElementById('fileSourceGroup').style.display = 'none';
+            modal.style.display = 'flex';
+        }
+
+        async function deleteMovie(id) {
+            if(confirm("Are you sure you want to delete this movie?")) {
+                try {
+                    const response = await fetch(`/api/delete-movie/${id}`, { method: 'DELETE' });
+                    const result = await response.json();
+                    if(result.success) { loadAdminContent(); }
+                } catch(err) { console.error("Error deleting:", err); }
+            }
+        }
+
+        loadAdminContent();
+
+        document.getElementById('mediaUploadForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            const editId = document.getElementById('editMovieId').value;
+            const title = document.getElementById('title').value;
+            const category = document.getElementById('category').value;
+            const poster_url = document.getElementById('poster_url').value;
+            const banner_url = document.getElementById('banner_url').value;
+            const direct_link = document.getElementById('direct_link').value;
+
+            if(editId) {
+                const response = await fetch(`/api/update-movie/${editId}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ title, category, poster_url, banner_url, direct_link })
+                });
+                const result = await response.json();
+                if(result.success) {
+                    document.getElementById('modalMsg').innerText = "Updated Successfully!";
+                    setTimeout(() => { closeUploadModal(); document.getElementById('modalMsg').innerText = ""; loadAdminContent(); }, 1200);
+                }
+            } else {
+                const formData = new FormData();
+                formData.append('title', title);
+                formData.append('category', category);
+                formData.append('poster_url', poster_url);
+                formData.append('banner_url', banner_url);
+                formData.append('uploadType', document.getElementById('uploadType').value);
+                if(document.getElementById('uploadType').value === 'link') {
+                    formData.append('direct_link', direct_link);
+                } else {
+                    const fileInput = document.getElementById('videoFile');
+                    if(fileInput.files[0]) { formData.append('videoFile', fileInput.files[0]); }
+                }
+                const response = await fetch('/api/upload-content', { method: 'POST', body: formData });
+                const result = await response.json();
+                if(result.success) {
+                    document.getElementById('modalMsg').innerText = "Uploaded Successfully!";
+                    setTimeout(() => { closeUploadModal(); document.getElementById('mediaUploadForm').reset(); document.getElementById('modalMsg').innerText = ""; loadAdminContent(); }, 1200);
+                }
+            }
+        });
+    </script>
+</body>
+</html>
