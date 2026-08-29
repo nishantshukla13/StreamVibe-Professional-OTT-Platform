@@ -17,11 +17,16 @@ app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
+// TiDB Cloud Connection using Environment Variables
 const db = mysql.createConnection({
-    host: 'localhost',
-    user: 'root',
-    password: '9621634193',
-    database: 'streamvibe_db'
+    host: process.env.DB_HOST,
+    user: process.env.DB_USER,
+    password: process.env.DB_PASSWORD,
+    database: process.env.DB_NAME || 'test',
+    port: process.env.DB_PORT || 4000,
+    ssl: {
+        rejectUnauthorized: true
+    }
 });
 
 db.connect((err) => {
@@ -29,7 +34,7 @@ db.connect((err) => {
         console.error('Database connection failed:', err);
         return;
     }
-    console.log('Connected to MySQL Database successfully!');
+    console.log('Connected to TiDB Cloud Database successfully!');
 });
 
 const storage = multer.diskStorage({
@@ -130,5 +135,5 @@ app.delete('/api/delete-movie/:id', (req, res) => {
 });
 
 app.listen(PORT, () => {
-    console.log(`Server running on http://localhost:${PORT}`);
+    console.log(`Server running on port ${PORT}`);
 });
