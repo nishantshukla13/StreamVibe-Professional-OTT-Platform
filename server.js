@@ -1,3 +1,4 @@
+require('dotenv').config();
 const express = require('express');
 const mysql = require('mysql2');
 const multer = require('multer');
@@ -87,21 +88,25 @@ app.post('/api/change-password', (req, res) => {
     });
 });
 
-// API: Upload Content
+// API: Upload Content (Supports Direct Link, Embed Link, and File Upload)
 app.post('/api/upload-content', upload.single('videoFile'), (req, res) => {
-    const { title, category, poster_url, banner_url, uploadType, direct_link } = req.body;
+    const { title, category, poster_url, banner_url, uploadType, direct_link, embed_link } = req.body;
     let mediaLink = "";
+    let embedLinkVal = "";
+
     if (uploadType === 'link') {
-        mediaLink = direct_link;
+        mediaLink = direct_link || "";
+    } else if (uploadType === 'embed') {
+        embedLinkVal = embed_link || "";
     } else if (req.file) {
         mediaLink = `/uploads/${req.file.filename}`;
     } else {
         return res.status(400).json({ success: false, message: 'No video provided!' });
     }
 
-    const query = "INSERT INTO movies (title, category, poster_url, banner_url, drive_link) VALUES (?, ?, ?, ?, ?)";
-    db.query(query, [title, category, poster_url, banner_url || '', mediaLink], (err) => {
-        if (err) return res.status(500).json({ success: false, message: 'Database error' });
+    const query = "INSERT INTO movies (title, category, poster_url, banner_url, drive_link, embed_link) VALUES (?, ?, ?, ?, ?, ?)";
+    db.query(query, [title, category, poster_url, banner_url || '', mediaLink, embedLinkVal], (err) => {
+        if (err) return res.status(500).json({ success: false, message: 'Database error: ' + err.message });
         res.json({ success: true, message: 'Content uploaded successfully!' });
     });
 });
@@ -117,9 +122,9 @@ app.get('/api/movies', (req, res) => {
 // API: Update Movie
 app.put('/api/update-movie/:id', (req, res) => {
     const movieId = req.params.id;
-    const { title, category, poster_url, banner_url, direct_link } = req.body;
-    const query = "UPDATE movies SET title = ?, category = ?, poster_url = ?, banner_url = ?, drive_link = ? WHERE id = ?";
-    db.query(query, [title, category, poster_url, banner_url || '', direct_link, movieId], (err) => {
+    const { title, category, poster_url, banner_url, direct_link, embed_link } = req.body;
+    const query = "UPDATE movies SET title = ?, category = ?, poster_url = ?, banner_url = ?, drive_link = ?, embed_link = ? WHERE id = ?";
+    db.query(query, [title, category, poster_url, banner_url || '', direct_link || '', embed_link || '', movieId], (err) => {
         if (err) return res.status(500).json({ success: false, message: 'Database error' });
         res.json({ success: true, message: 'Movie updated successfully!' });
     });
