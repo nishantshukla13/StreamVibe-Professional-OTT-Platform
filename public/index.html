@@ -116,6 +116,7 @@
         <button class="tab-btn" onclick="filterCategory('Web Series', this)">Web Series</button>
     </div>
 
+    <!-- Banner Wrapper with Arrows -->
     <div class="hero-banner-wrapper" id="bannerWrapper">
         <button class="slider-arrow prev-arrow" onclick="prevSlide()">&#10094;</button>
         <div class="hero-banner" id="heroSlider"></div>
@@ -127,6 +128,7 @@
         <div class="movie-grid" id="movieGrid"></div>
     </div>
 
+    <!-- Video Player Modal Container -->
     <div class="player-modal" id="videoPlayerModal">
         <div class="player-content">
             <span class="player-close" onclick="closeVideoPlayer()">&times;</span>
@@ -134,6 +136,7 @@
         </div>
     </div>
 
+    <!-- Mobile Bottom Navigation -->
     <div class="bottom-nav">
         <a href="index.html" class="bottom-nav-item active">🏠<span>Home</span></a>
         <a href="index.html" class="bottom-nav-item">🎬<span>Series</span></a>
@@ -158,9 +161,7 @@
         function openVideoPlayer(url) {
             const modal = document.getElementById('videoPlayerModal');
             const iframe = document.getElementById('videoIframe');
-            // Route through backend proxy to bypass hotlinking and user-agent mobile restrictions
-            const proxiedUrl = `/api/proxy-stream?url=${encodeURIComponent(url)}`;
-            iframe.src = proxiedUrl;
+            iframe.src = url;
             modal.style.display = 'flex';
         }
 

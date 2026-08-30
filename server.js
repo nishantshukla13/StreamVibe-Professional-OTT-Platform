@@ -1,7 +1,6 @@
 const express = require('express');
 const mysql = require('mysql2');
 const path = require('path');
-const axios = require('axios');
 
 const app = express();
 
@@ -27,36 +26,6 @@ const db = mysql.createPool({
     waitForConnections: true,
     connectionLimit: 10,
     queueLimit: 0
-});
-
-// API: Proxy Stream Route to Bypass Hotlinking/Headers/CORS
-app.get('/api/proxy-stream', async (req, res) => {
-    const videoUrl = req.query.url;
-    if (!videoUrl) {
-        return res.status(400).send('Video URL is required');
-    }
-
-    try {
-        const response = await axios({
-            method: 'GET',
-            url: videoUrl,
-            headers: {
-                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-                'Referer': new URL(videoUrl).origin
-            },
-            responseType: 'stream'
-        });
-
-        res.setHeader('Content-Type', response.headers['content-type'] || 'video/mp4');
-        if (response.headers['content-length']) {
-            res.setHeader('Content-Length', response.headers['content-length']);
-        }
-
-        response.data.pipe(res);
-    } catch (error) {
-        console.error("Proxy streaming error:", error.message);
-        res.status(500).send('Failed to stream video via proxy');
-    }
 });
 
 // API: Admin Login Verification
