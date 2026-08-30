@@ -127,7 +127,6 @@
                     <select id="uploadType" onchange="toggleSourceInput()">
                         <option value="link">Doodstream / External URL Link</option>
                         <option value="embed">Embed / Iframe Link</option>
-                        <option value="file">Direct Gallery File</option>
                     </select>
                 </div>
                 <div class="form-group" id="linkSourceGroup">
@@ -137,10 +136,6 @@
                 <div class="form-group" id="embedSourceGroup" style="display:none;">
                     <label>Embed / Iframe Link (Src URL)</label>
                     <input type="url" id="embed_link" placeholder="Paste embed iframe src link">
-                </div>
-                <div class="form-group" id="fileSourceGroup" style="display:none;">
-                    <label>Select Video File</label>
-                    <input type="file" id="videoFile" accept="video/*">
                 </div>
                 <button type="submit" class="submit-btn" id="submitBtnText">Publish Content</button>
             </form>
@@ -227,7 +222,6 @@
             const type = document.getElementById('uploadType').value;
             document.getElementById('linkSourceGroup').style.display = type === 'link' ? 'block' : 'none';
             document.getElementById('embedSourceGroup').style.display = type === 'embed' ? 'block' : 'none';
-            document.getElementById('fileSourceGroup').style.display = type === 'file' ? 'block' : 'none';
         }
 
         async function loadAdminContent() {
@@ -274,7 +268,6 @@
             document.getElementById('sourceSelectGroup').style.display = 'none';
             document.getElementById('linkSourceGroup').style.display = 'block';
             document.getElementById('embedSourceGroup').style.display = 'none';
-            document.getElementById('fileSourceGroup').style.display = 'none';
             modal.style.display = 'flex';
         }
 
@@ -297,6 +290,7 @@
             const category = document.getElementById('category').value;
             const poster_url = document.getElementById('poster_url').value;
             const banner_url = document.getElementById('banner_url').value;
+            const uploadType = document.getElementById('uploadType').value;
             const direct_link = document.getElementById('direct_link').value;
             const embed_link = document.getElementById('embed_link').value;
 
@@ -312,24 +306,19 @@
                     setTimeout(() => { closeUploadModal(); document.getElementById('modalMsg').innerText = ""; loadAdminContent(); }, 1200);
                 }
             } else {
-                const uploadType = document.getElementById('uploadType').value;
-                const formData = new FormData();
-                formData.append('title', title);
-                formData.append('category', category);
-                formData.append('poster_url', poster_url);
-                formData.append('banner_url', banner_url);
-                formData.append('uploadType', uploadType);
-                
-                if(uploadType === 'link') {
-                    formData.append('direct_link', direct_link);
-                } else if(uploadType === 'embed') {
-                    formData.append('embed_link', embed_link);
-                } else {
-                    const fileInput = document.getElementById('videoFile');
-                    if(fileInput.files[0]) { formData.append('videoFile', fileInput.files[0]); }
-                }
-                
-                const response = await fetch('/api/upload-content', { method: 'POST', body: formData });
+                const response = await fetch('/api/upload-content', { 
+                    method: 'POST', 
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        title,
+                        category,
+                        poster_url,
+                        banner_url,
+                        uploadType,
+                        direct_link: uploadType === 'link' ? direct_link : null,
+                        embed_link: uploadType === 'embed' ? embed_link : null
+                    }) 
+                });
                 const result = await response.json();
                 if(result.success) {
                     document.getElementById('modalMsg').innerText = "Uploaded Successfully!";
