@@ -8,18 +8,18 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(express.static(path.join(__dirname, 'public')));
 
-// Explicit route to fix "Cannot GET /" on Vercel
+// Explicit route to fix root route on Vercel
 app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
-// TiDB Cloud Connection using Environment Variables
+// TiDB Cloud Connection Pool
 const db = mysql.createPool({
     host: process.env.DB_HOST,
     user: process.env.DB_USER,
     password: process.env.DB_PASSWORD,
     database: process.env.DB_NAME || 'test',
-    port: process.env.DB_PORT || 4000,
+    port: Number(process.env.DB_PORT || 4000),
     ssl: {
         rejectUnauthorized: true
     },
@@ -69,16 +69,16 @@ app.post('/api/change-password', (req, res) => {
 
 // API: Upload Content
 app.post('/api/upload-content', (req, res) => {
-    const { title, category, poster_url, banner_url, uploadType, direct_link, embed_link } = req.body;
+    const { title, category, poster_url, banner_url, uploadType, drive_link, embed_link } = req.body;
     let mediaLink = "";
     let embedLinkVal = "";
 
     if (uploadType === 'link') {
-        mediaLink = direct_link || "";
+        mediaLink = drive_link || "";
     } else if (uploadType === 'embed') {
         embedLinkVal = embed_link || "";
     } else {
-        mediaLink = direct_link || "";
+        mediaLink = drive_link || "";
         embedLinkVal = embed_link || "";
     }
 
@@ -100,9 +100,9 @@ app.get('/api/movies', (req, res) => {
 // API: Update Movie
 app.put('/api/update-movie/:id', (req, res) => {
     const movieId = req.params.id;
-    const { title, category, poster_url, banner_url, direct_link, embed_link } = req.body;
+    const { title, category, poster_url, banner_url, drive_link, embed_link } = req.body;
     const query = "UPDATE movies SET title = ?, category = ?, poster_url = ?, banner_url = ?, drive_link = ?, embed_link = ? WHERE id = ?";
-    db.query(query, [title, category, poster_url, banner_url || '', direct_link || '', embed_link || '', movieId], (err) => {
+    db.query(query, [title, category, poster_url, banner_url || '', drive_link || '', embed_link || '', movieId], (err) => {
         if (err) return res.status(500).json({ success: false, message: 'Database error: ' + err.message });
         res.json({ success: true, message: 'Movie updated successfully!' });
     });
