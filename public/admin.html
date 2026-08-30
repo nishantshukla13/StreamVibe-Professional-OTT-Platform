@@ -131,7 +131,7 @@
                 </div>
                 <div class="form-group" id="linkSourceGroup">
                     <label>Direct Video Link</label>
-                    <input type="url" id="direct_link" placeholder="Paste streaming URL">
+                    <input type="url" id="drive_link" placeholder="Paste streaming URL">
                 </div>
                 <div class="form-group" id="embedSourceGroup" style="display:none;">
                     <label>Embed / Iframe Link (Src URL)</label>
@@ -263,7 +263,7 @@
             document.getElementById('category').value = movie.category;
             document.getElementById('poster_url').value = movie.poster_url;
             document.getElementById('banner_url').value = movie.banner_url || '';
-            document.getElementById('direct_link').value = movie.direct_link || '';
+            document.getElementById('drive_link').value = movie.drive_link || '';
             document.getElementById('embed_link').value = movie.embed_link || '';
             document.getElementById('sourceSelectGroup').style.display = 'none';
             document.getElementById('linkSourceGroup').style.display = 'block';
@@ -291,14 +291,14 @@
             const poster_url = document.getElementById('poster_url').value;
             const banner_url = document.getElementById('banner_url').value;
             const uploadType = document.getElementById('uploadType').value;
-            const direct_link = document.getElementById('direct_link').value;
+            const drive_link = document.getElementById('drive_link').value;
             const embed_link = document.getElementById('embed_link').value;
 
             if(editId) {
                 const response = await fetch(`/api/update-movie/${editId}`, {
                     method: 'PUT',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ title, category, poster_url, banner_url, direct_link, embed_link })
+                    body: JSON.stringify({ title, category, poster_url, banner_url, drive_link, embed_link })
                 });
                 const result = await response.json();
                 if(result.success) {
@@ -315,7 +315,7 @@
                         poster_url,
                         banner_url,
                         uploadType,
-                        direct_link: uploadType === 'link' ? direct_link : null,
+                        drive_link: uploadType === 'link' ? drive_link : null,
                         embed_link: uploadType === 'embed' ? embed_link : null
                     }) 
                 });
