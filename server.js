@@ -8,12 +8,12 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(express.static(path.join(__dirname, 'public')));
 
-// Explicit route to fix root route on Vercel
+// Explicit route to fix "Cannot GET /" on Vercel
 app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
-// TiDB Cloud Connection Pool
+// TiDB Cloud Connection Pool using Environment Variables
 const db = mysql.createPool({
     host: process.env.DB_HOST,
     user: process.env.DB_USER,
@@ -67,7 +67,7 @@ app.post('/api/change-password', (req, res) => {
     });
 });
 
-// API: Upload Content
+// API: Upload Content (Fixed field names for drive_link)
 app.post('/api/upload-content', (req, res) => {
     const { title, category, poster_url, banner_url, uploadType, drive_link, embed_link } = req.body;
     let mediaLink = "";
@@ -97,7 +97,7 @@ app.get('/api/movies', (req, res) => {
     });
 });
 
-// API: Update Movie
+// API: Update Movie (Fixed field names for drive_link)
 app.put('/api/update-movie/:id', (req, res) => {
     const movieId = req.params.id;
     const { title, category, poster_url, banner_url, drive_link, embed_link } = req.body;
