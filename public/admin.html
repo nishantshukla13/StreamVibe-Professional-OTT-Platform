@@ -127,6 +127,7 @@
                     <select id="uploadType" onchange="toggleSourceInput()">
                         <option value="link">Doodstream / External URL Link</option>
                         <option value="embed">Embed / Iframe Link</option>
+                        <option value="gdrive">Google Drive Direct Link</option>
                     </select>
                 </div>
                 <div class="form-group" id="linkSourceGroup">
@@ -136,6 +137,10 @@
                 <div class="form-group" id="embedSourceGroup" style="display:none;">
                     <label>Embed / Iframe Link (Src URL)</label>
                     <input type="url" id="embed_link" placeholder="Paste embed iframe src link">
+                </div>
+                <div class="form-group" id="gdriveSourceGroup" style="display:none;">
+                    <label>Google Drive Link</label>
+                    <input type="url" id="gdrive_link" placeholder="Paste Google Drive Link">
                 </div>
                 <button type="submit" class="submit-btn" id="submitBtnText">Publish Content</button>
             </form>
@@ -227,6 +232,7 @@
             const type = document.getElementById('uploadType').value;
             document.getElementById('linkSourceGroup').style.display = type === 'link' ? 'block' : 'none';
             document.getElementById('embedSourceGroup').style.display = type === 'embed' ? 'block' : 'none';
+            document.getElementById('gdriveSourceGroup').style.display = type === 'gdrive' ? 'block' : 'none';
         }
 
         async function loadAdminContent() {
@@ -272,9 +278,11 @@
             document.getElementById('banner_url').value = movie.banner_url || '';
             document.getElementById('drive_link').value = movie.drive_link || '';
             document.getElementById('embed_link').value = movie.embed_link || '';
+            document.getElementById('gdrive_link').value = '';
             document.getElementById('sourceSelectGroup').style.display = 'none';
             document.getElementById('linkSourceGroup').style.display = 'block';
             document.getElementById('embedSourceGroup').style.display = 'none';
+            document.getElementById('gdriveSourceGroup').style.display = 'none';
             modal.style.display = 'flex';
         }
 
@@ -300,12 +308,19 @@
             const uploadType = document.getElementById('uploadType').value;
             const drive_link = document.getElementById('drive_link').value;
             const embed_link = document.getElementById('embed_link').value;
+            const gdrive_link = document.getElementById('gdrive_link').value;
+
+            // Determine final link to store in drive_link
+            let finalDriveLink = drive_link;
+            if(uploadType === 'gdrive') {
+                finalDriveLink = gdrive_link;
+            }
 
             if(editId) {
                 const response = await fetch(`/api/update-movie/${editId}`, {
                     method: 'PUT',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ title, category, poster_url, banner_url, drive_link, embed_link })
+                    body: JSON.stringify({ title, category, poster_url, banner_url, drive_link: finalDriveLink, embed_link })
                 });
                 const result = await response.json();
                 if(result.success) {
@@ -321,8 +336,8 @@
                         category,
                         poster_url,
                         banner_url,
-                        uploadType,
-                        drive_link: uploadType === 'link' ? drive_link : null,
+                        uploadType: uploadType === 'gdrive' ? 'link' : uploadType,
+                        drive_link: uploadType === 'link' ? drive_link : (uploadType === 'gdrive' ? gdrive_link : null),
                         embed_link: uploadType === 'embed' ? embed_link : null
                     }) 
                 });
