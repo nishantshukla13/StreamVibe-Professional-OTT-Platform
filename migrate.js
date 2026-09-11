@@ -3,7 +3,7 @@ const mysql = require('mysql2');
 const db = mysql.createConnection({
     host: 'gateway01.sa-east-1.prod.aws.tidbcloud.com',
     user: 'JUDbqCoUMPhxXC9.root',
-    password: 'sQzdEABRHN2LHPf6', // Yahan apna TiDB Cloud ka password likh dein
+    password: 'X3YLoJc4Bo0m24Oy', // Yahan apna TiDB Cloud ka password likh dein
     database: 'test',
     port: 4000,
     ssl: {

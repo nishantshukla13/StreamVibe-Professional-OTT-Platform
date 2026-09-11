@@ -2,1570 +2,321 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-
-    <meta
-        name="viewport"
-        content="width=device-width, initial-scale=1.0"
-    >
-
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>StreamVibe - Watch Movies & Shows</title>
-
+    <!-- HLS.js Library for smooth .m3u8 streaming on all devices -->
+    <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
     <style>
-
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: Arial, Helvetica, sans-serif;
-        }
-
-        body {
-            background: #080808;
-            color: #ffffff;
-            min-height: 100vh;
-        }
-
-        /* =========================================
-           HEADER
-        ========================================= */
-
-        header {
-            width: 100%;
-            height: 70px;
-            background: #0d0d0d;
-            border-bottom: 1px solid #202020;
-
-            display: flex;
-            align-items: center;
-
-            padding: 0 42px;
-
-            gap: 25px;
-
-            position: sticky;
-            top: 0;
-            z-index: 1000;
-        }
-
-        .logo {
-            font-size: 25px;
-            font-weight: 800;
-            color: #e50914;
-            white-space: nowrap;
-        }
-
-        .logo span {
-            color: #ffffff;
-        }
-
-        .search-box {
-            flex: 1;
-            max-width: 500px;
-        }
-
-        .search-box input {
-            width: 100%;
-            height: 42px;
-
-            border: 1px solid #242424;
-            border-radius: 25px;
-
-            background: #151515;
-            color: white;
-
-            padding: 0 18px;
-            outline: none;
-
-            font-size: 14px;
-        }
-
-        .search-box input:focus {
-            border-color: #e50914;
-        }
-
-        .admin-btn {
-            margin-left: auto;
-
-            text-decoration: none;
-
-            background: #e50914;
-            color: white;
-
-            padding: 11px 18px;
-
-            border-radius: 6px;
-
-            font-size: 13px;
-            font-weight: bold;
-        }
-
-        .admin-btn:hover {
-            background: #ff1722;
-        }
-
-        /* =========================================
-           NAVIGATION
-        ========================================= */
-
-        .navigation {
-            display: flex;
-            gap: 10px;
-
-            padding: 22px 42px 10px;
-
-            overflow-x: auto;
-        }
-
-        .category-btn {
-            border: none;
-            background: #171717;
-            color: #aaa;
-
-            padding: 9px 20px;
-
-            border-radius: 22px;
-
-            cursor: pointer;
-
-            white-space: nowrap;
-
-            font-size: 13px;
-        }
-
-        .category-btn:hover {
-            color: white;
-        }
-
-        .category-btn.active {
-            background: #e50914;
-            color: white;
-        }
-
-        /* =========================================
-           MAIN
-        ========================================= */
-
-        main {
-            padding: 20px 42px 60px;
-        }
-
-        .section-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-
-            margin: 25px 0 20px;
-        }
-
-        .section-title {
-            font-size: 22px;
-            border-left: 4px solid #e50914;
-            padding-left: 10px;
-        }
-
-        .movie-count {
-            color: #777;
-            font-size: 13px;
-        }
-
-        /* =========================================
-           MOVIE GRID
-        ========================================= */
-
-        .movie-grid {
-            display: grid;
-
-            grid-template-columns:
-                repeat(
-                    auto-fill,
-                    minmax(170px, 1fr)
-                );
-
-            gap: 22px;
-        }
-
-        .movie-card {
-            background: #111111;
-
-            border: 1px solid #1e1e1e;
-
-            border-radius: 8px;
-
-            overflow: hidden;
-
-            transition:
-                transform 0.2s,
-                border-color 0.2s;
-
-            min-width: 0;
-        }
-
-        .movie-card:hover {
-            transform: translateY(-5px);
-            border-color: #e50914;
-        }
-
-        .poster-container {
-            width: 100%;
-            height: 255px;
-
-            background: #151515;
-
-            position: relative;
-
-            overflow: hidden;
-        }
-
-        .poster-container img {
-            width: 100%;
-            height: 100%;
-
-            object-fit: cover;
-
-            display: block;
-        }
-
-        .movie-category {
-            position: absolute;
-
-            top: 9px;
-            left: 9px;
-
-            background: rgba(229, 9, 20, 0.95);
-
-            color: white;
-
-            padding: 5px 8px;
-
-            border-radius: 4px;
-
-            font-size: 10px;
-            font-weight: bold;
-        }
-
-        .movie-info {
-            padding: 12px;
-        }
-
-        .movie-title {
-            font-size: 14px;
-            font-weight: bold;
-
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-
-            margin-bottom: 10px;
-        }
-
-        .play-btn {
-            width: 100%;
-
-            border: none;
-
-            background: #e50914;
-            color: white;
-
-            padding: 9px;
-
-            border-radius: 5px;
-
-            cursor: pointer;
-
-            font-size: 12px;
-            font-weight: bold;
-        }
-
-        .play-btn:hover {
-            background: #ff1722;
-        }
-
-        /* =========================================
-           LOADING
-        ========================================= */
-
-        .loading {
-            text-align: center;
-
-            color: #888;
-
-            padding: 60px 20px;
-
-            font-size: 14px;
-        }
-
-        .empty {
-            text-align: center;
-
-            color: #777;
-
-            padding: 60px 20px;
-
-            display: none;
-        }
-
-        /* =========================================
-           PLAYER MODAL
-        ========================================= */
-
-        .player-modal {
-            position: fixed;
-
-            inset: 0;
-
-            background: rgba(0, 0, 0, 0.94);
-
-            z-index: 5000;
-
-            display: none;
-
-            align-items: center;
-            justify-content: center;
-
-            padding: 20px;
-        }
-
-        .player-modal.show {
-            display: flex;
-        }
-
-        .player-box {
-            width: min(1100px, 100%);
-
-            background: #0d0d0d;
-
-            border: 1px solid #292929;
-
-            border-radius: 10px;
-
-            overflow: hidden;
-
-            box-shadow:
-                0 20px 80px
-                rgba(0, 0, 0, 0.8);
-        }
-
-        .player-header {
-            height: 55px;
-
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-
-            padding: 0 15px;
-
-            background: #121212;
-
-            border-bottom: 1px solid #252525;
-        }
-
-        .player-title {
-            font-size: 15px;
-            font-weight: bold;
-
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-
-            padding-right: 20px;
-        }
-
-        .close-player {
-            width: 36px;
-            height: 36px;
-
-            border-radius: 50%;
-
-            border: none;
-
-            background: #333;
-
-            color: white;
-
-            font-size: 23px;
-
-            cursor: pointer;
-
-            flex-shrink: 0;
-        }
-
-        .close-player:hover {
-            background: #e50914;
-        }
-
-        .player-area {
-            width: 100%;
-
-            aspect-ratio: 16 / 9;
-
-            background: #000;
-
-            position: relative;
-        }
-
-        .player-area iframe,
-        .player-area video {
-            width: 100%;
-            height: 100%;
-
-            border: none;
-
-            display: block;
-
-            background: #000;
-        }
-
-        .player-message {
-            position: absolute;
-
-            inset: 0;
-
-            display: none;
-
-            align-items: center;
-            justify-content: center;
-
-            flex-direction: column;
-
-            gap: 12px;
-
-            text-align: center;
-
-            padding: 25px;
-
-            background: #000;
-        }
-
-        .player-message.show {
-            display: flex;
-        }
-
-        .player-message h3 {
-            font-size: 18px;
-        }
-
-        .player-message p {
-            color: #888;
-            font-size: 13px;
-            max-width: 550px;
-            line-height: 1.6;
-        }
-
-        /* =========================================
-           FOOTER
-        ========================================= */
-
-        footer {
-            text-align: center;
-
-            padding: 30px;
-
-            border-top: 1px solid #202020;
-
-            color: #666;
-
-            font-size: 12px;
-        }
-
-        /* =========================================
-           MOBILE
-        ========================================= */
-
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: Arial, Helvetica, sans-serif; }
+        body { background: #080808; color: #ffffff; min-height: 100vh; }
+        header { width: 100%; height: 70px; background: #0d0d0d; border-bottom: 1px solid #202020; display: flex; align-items: center; padding: 0 42px; gap: 25px; position: sticky; top: 0; z-index: 1000; }
+        .logo { font-size: 25px; font-weight: 800; color: #e50914; white-space: nowrap; }
+        .logo span { color: #ffffff; }
+        .search-box { flex: 1; max-width: 500px; }
+        .search-box input { width: 100%; height: 42px; border: 1px solid #242424; border-radius: 25px; background: #151515; color: white; padding: 0 18px; outline: none; font-size: 14px; }
+        .search-box input:focus { border-color: #e50914; }
+        .admin-btn { margin-left: auto; text-decoration: none; background: #e50914; color: white; padding: 11px 18px; border-radius: 6px; font-size: 13px; font-weight: bold; }
+        .admin-btn:hover { background: #ff1722; }
+        .navigation { display: flex; gap: 10px; padding: 22px 42px 10px; overflow-x: auto; }
+        .category-btn { border: none; background: #171717; color: #aaa; padding: 9px 20px; border-radius: 22px; cursor: pointer; white-space: nowrap; font-size: 13px; }
+        .category-btn:hover { color: white; }
+        .category-btn.active { background: #e50914; color: white; }
+        main { padding: 20px 42px 60px; }
+        .section-header { display: flex; justify-content: space-between; align-items: center; margin: 25px 0 20px; }
+        .section-title { font-size: 22px; border-left: 4px solid #e50914; padding-left: 10px; }
+        .movie-count { color: #777; font-size: 13px; }
+        .movie-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)); gap: 22px; }
+        .movie-card { background: #111111; border: 1px solid #1e1e1e; border-radius: 8px; overflow: hidden; transition: transform 0.2s, border-color 0.2s; min-width: 0; }
+        .movie-card:hover { transform: translateY(-5px); border-color: #e50914; }
+        .poster-container { width: 100%; height: 255px; background: #151515; position: relative; overflow: hidden; }
+        .poster-container img { width: 100%; height: 100%; object-fit: cover; display: block; }
+        .movie-category { position: absolute; top: 9px; left: 9px; background: rgba(229, 9, 20, 0.95); color: white; padding: 5px 8px; border-radius: 4px; font-size: 10px; font-weight: bold; }
+        .movie-info { padding: 12px; }
+        .movie-title { font-size: 14px; font-weight: bold; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-bottom: 10px; }
+        .play-btn { width: 100%; border: none; background: #e50914; color: white; padding: 9px; border-radius: 5px; cursor: pointer; font-size: 12px; font-weight: bold; }
+        .play-btn:hover { background: #ff1722; }
+        .loading { text-align: center; color: #888; padding: 60px 20px; font-size: 14px; }
+        .empty { text-align: center; color: #777; padding: 60px 20px; display: none; }
+        .player-modal { position: fixed; inset: 0; background: rgba(0, 0, 0, 0.94); z-index: 5000; display: none; align-items: center; justify-content: center; padding: 20px; }
+        .player-modal.show { display: flex; }
+        .player-box { width: min(1100px, 100%); background: #0d0d0d; border: 1px solid #292929; border-radius: 10px; overflow: hidden; }
+        .player-header { height: 55px; display: flex; align-items: center; justify-content: space-between; padding: 0 15px; background: #121212; border-bottom: 1px solid #252525; }
+        .player-title { font-size: 15px; font-weight: bold; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; padding-right: 20px; }
+        .close-player { width: 36px; height: 36px; border-radius: 50%; border: none; background: #333; color: white; font-size: 23px; cursor: pointer; flex-shrink: 0; }
+        .close-player:hover { background: #e50914; }
+        .player-area { width: 100%; aspect-ratio: 16 / 9; background: #000; position: relative; }
+        .player-area iframe, .player-area video { width: 100%; height: 100%; border: none; display: block; background: #000; }
+        .player-message { position: absolute; inset: 0; display: none; align-items: center; justify-content: center; flex-direction: column; gap: 12px; text-align: center; padding: 25px; background: #000; }
+        .player-message.show { display: flex; }
+        footer { text-align: center; padding: 30px; border-top: 1px solid #202020; color: #666; font-size: 12px; }
         @media (max-width: 700px) {
-
-            header {
-                height: auto;
-
-                min-height: 70px;
-
-                padding: 13px 15px;
-
-                flex-wrap: wrap;
-
-                gap: 10px;
-            }
-
-            .logo {
-                font-size: 21px;
-            }
-
-            .search-box {
-                order: 3;
-
-                flex-basis: 100%;
-
-                max-width: none;
-            }
-
-            .admin-btn {
-                padding: 9px 12px;
-                font-size: 11px;
-            }
-
-            .navigation {
-                padding: 15px 15px 5px;
-            }
-
-            main {
-                padding: 10px 15px 40px;
-            }
-
-            .section-title {
-                font-size: 19px;
-            }
-
-            .movie-grid {
-                grid-template-columns:
-                    repeat(
-                        2,
-                        minmax(0, 1fr)
-                    );
-
-                gap: 12px;
-            }
-
-            .poster-container {
-                height: 230px;
-            }
-
-            .movie-info {
-                padding: 9px;
-            }
-
-            .movie-title {
-                font-size: 12px;
-            }
-
-            .play-btn {
-                padding: 8px;
-            }
-
-            .player-modal {
-                padding: 0;
-            }
-
-            .player-box {
-                width: 100%;
-                border-radius: 0;
-                border-left: none;
-                border-right: none;
-            }
-
-            .player-header {
-                height: 52px;
-            }
-
-            .player-area {
-                aspect-ratio: 16 / 9;
-            }
+            header { height: auto; min-height: 70px; padding: 13px 15px; flex-wrap: wrap; gap: 10px; }
+            .search-box { order: 3; flex-basis: 100%; max-width: none; }
+            .movie-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+            .poster-container { height: 230px; }
         }
-
-        @media (max-width: 380px) {
-
-            .poster-container {
-                height: 205px;
-            }
-
-            .movie-grid {
-                gap: 9px;
-            }
-        }
-
     </style>
 </head>
-
 <body>
 
-    <!-- =========================================
-         HEADER
-    ========================================= -->
-
     <header>
-
-        <div class="logo">
-            Stream<span>Vibe</span>
-        </div>
-
-        <div class="search-box">
-
-            <input
-                type="search"
-                id="searchInput"
-                placeholder="Search movies, series..."
-                autocomplete="off"
-            >
-
-        </div>
-
-        <a
-            href="admin.html"
-            class="admin-btn"
-        >
-            Admin Panel
-        </a>
-
+        <div class="logo">Stream<span>Vibe</span></div>
+        <div class="search-box"><input type="search" id="searchInput" placeholder="Search movies, series..." autocomplete="off"></div>
+        <a href="admin.html" class="admin-btn">Admin Panel</a>
     </header>
 
-
-    <!-- =========================================
-         CATEGORY NAVIGATION
-    ========================================= -->
-
     <nav class="navigation">
-
-        <button
-            class="category-btn active"
-            data-category="All"
-        >
-            Home
-        </button>
-
-        <button
-            class="category-btn"
-            data-category="Movie"
-        >
-            Movies
-        </button>
-
-        <button
-            class="category-btn"
-            data-category="Web Series"
-        >
-            Web Series
-        </button>
-
-        <button
-            class="category-btn"
-            data-category="Anime"
-        >
-            Anime
-        </button>
-
-        <button
-            class="category-btn"
-            data-category="TV"
-        >
-            TV Shows
-        </button>
-
+        <button class="category-btn active" data-category="All">Home</button>
+        <button class="category-btn" data-category="Movie">Movies</button>
+        <button class="category-btn" data-category="Web Series">Web Series</button>
+        <button class="category-btn" data-category="Anime">Anime</button>
+        <button class="category-btn" data-category="TV">TV Shows</button>
     </nav>
 
-
-    <!-- =========================================
-         MAIN CONTENT
-    ========================================= -->
-
     <main>
-
         <div class="section-header">
-
-            <h2 class="section-title">
-                Latest Releases
-            </h2>
-
-            <span
-                class="movie-count"
-                id="movieCount"
-            >
-                Loading...
-            </span>
-
+            <h2 class="section-title">Latest Releases</h2>
+            <span class="movie-count" id="movieCount">Loading...</span>
         </div>
-
-
-        <div
-            class="loading"
-            id="loading"
-        >
-            Loading movies...
-        </div>
-
-
-        <div
-            class="movie-grid"
-            id="movieGrid"
-        >
-        </div>
-
-
-        <div
-            class="empty"
-            id="emptyMessage"
-        >
-            No movies found.
-        </div>
-
+        <div class="loading" id="loading">Loading movies...</div>
+        <div class="movie-grid" id="movieGrid"></div>
+        <div class="empty" id="emptyMessage">No movies found.</div>
     </main>
 
-
-    <!-- =========================================
-         PLAYER MODAL
-    ========================================= -->
-
-    <div
-        class="player-modal"
-        id="playerModal"
-    >
-
+    <div class="player-modal" id="playerModal">
         <div class="player-box">
-
             <div class="player-header">
-
-                <div
-                    class="player-title"
-                    id="playerTitle"
-                >
-                    Movie
-                </div>
-
-                <button
-                    class="close-player"
-                    id="closePlayer"
-                    type="button"
-                >
-                    ×
-                </button>
-
+                <div class="player-title" id="playerTitle">Movie</div>
+                <button class="close-player" id="closePlayer" type="button">&times;</button>
             </div>
-
-
             <div class="player-area">
-
-                <iframe
-                    id="iframePlayer"
-                    allow="autoplay; fullscreen; picture-in-picture"
-                    allowfullscreen
-                    style="display:none;"
-                >
-                </iframe>
-
-
-                <video
-                    id="videoPlayer"
-                    controls
-                    playsinline
-                    preload="metadata"
-                    style="display:none;"
-                >
-                </video>
-
-
-                <div
-                    class="player-message"
-                    id="playerMessage"
-                >
-
-                    <h3>
-                        Video cannot be played
-                    </h3>
-
-                    <p id="playerMessageText">
-                        The video source is unavailable.
-                    </p>
-
+                <iframe id="iframePlayer" allow="autoplay; fullscreen; picture-in-picture" allowfullscreen style="display:none;"></iframe>
+                <video id="videoPlayer" controls playsinline preload="metadata" style="display:none;"></video>
+                <div class="player-message" id="playerMessage">
+                    <h3>Video cannot be played</h3>
+                    <p id="playerMessageText">The video source is unavailable.</p>
                 </div>
-
             </div>
-
         </div>
-
     </div>
 
-
-    <!-- =========================================
-         FOOTER
-    ========================================= -->
-
-    <footer>
-
-        © 2026 StreamVibe. All rights reserved.
-
-    </footer>
-
+    <footer>© 2026 StreamVibe. All rights reserved.</footer>
 
     <script>
-
-        // =================================================
-        // GLOBAL VARIABLES
-        // =================================================
-
         let allMovies = [];
-
         let selectedCategory = "All";
 
+        const movieGrid = document.getElementById("movieGrid");
+        const loading = document.getElementById("loading");
+        const emptyMessage = document.getElementById("emptyMessage");
+        const movieCount = document.getElementById("movieCount");
+        const searchInput = document.getElementById("searchInput");
+        const playerModal = document.getElementById("playerModal");
+        const playerTitle = document.getElementById("playerTitle");
+        const iframePlayer = document.getElementById("iframePlayer");
+        const videoPlayer = document.getElementById("videoPlayer");
+        const playerMessage = document.getElementById("playerMessage");
+        const playerMessageText = document.getElementById("playerMessageText");
+        const closePlayer = document.getElementById("closePlayer");
 
-        // =================================================
-        // DOM ELEMENTS
-        // =================================================
-
-        const movieGrid =
-            document.getElementById("movieGrid");
-
-        const loading =
-            document.getElementById("loading");
-
-        const emptyMessage =
-            document.getElementById("emptyMessage");
-
-        const movieCount =
-            document.getElementById("movieCount");
-
-        const searchInput =
-            document.getElementById("searchInput");
-
-        const playerModal =
-            document.getElementById("playerModal");
-
-        const playerTitle =
-            document.getElementById("playerTitle");
-
-        const iframePlayer =
-            document.getElementById("iframePlayer");
-
-        const videoPlayer =
-            document.getElementById("videoPlayer");
-
-        const playerMessage =
-            document.getElementById("playerMessage");
-
-        const playerMessageText =
-            document.getElementById("playerMessageText");
-
-        const closePlayer =
-            document.getElementById("closePlayer");
-
-
-        // =================================================
-        // LOAD MOVIES
-        // =================================================
+        let hlsInstance = null; // Hls.js instance tracker
 
         async function loadMovies() {
-
             try {
-
                 loading.style.display = "block";
-
-                const response =
-                    await fetch("/api/movies");
-
-                if (!response.ok) {
-
-                    throw new Error(
-                        "Server returned " +
-                        response.status
-                    );
-                }
-
-                const data =
-                    await response.json();
-
-                if (!Array.isArray(data)) {
-
-                    throw new Error(
-                        "Invalid movie data"
-                    );
-                }
-
+                const response = await fetch("/api/movies");
+                const data = await response.json();
                 allMovies = data;
-
                 renderMovies();
-
-            }
-            catch (error) {
-
-                console.error(
-                    "Movie loading error:",
-                    error
-                );
-
+            } catch (error) {
                 movieGrid.innerHTML = "";
-
                 emptyMessage.style.display = "block";
-
-                emptyMessage.innerText =
-                    "Unable to load movies. Please try again later.";
-
+                emptyMessage.innerText = "Unable to load movies.";
                 movieCount.innerText = "Error";
-
-            }
-            finally {
-
+            } finally {
                 loading.style.display = "none";
             }
         }
 
-
-        // =================================================
-        // RENDER MOVIES
-        // =================================================
-
         function renderMovies() {
-
-            const searchText =
-                searchInput.value
-                    .trim()
-                    .toLowerCase();
-
-
-            let filteredMovies =
-                allMovies.filter(movie => {
-
-                    const category =
-                        String(
-                            movie.category || ""
-                        ).trim();
-
-
-                    const title =
-                        String(
-                            movie.title || ""
-                        ).toLowerCase();
-
-
-                    const categoryMatch =
-                        selectedCategory === "All" ||
-                        category === selectedCategory;
-
-
-                    const searchMatch =
-                        !searchText ||
-                        title.includes(searchText);
-
-
-                    return (
-                        categoryMatch &&
-                        searchMatch
-                    );
-
-                });
-
+            const searchText = searchInput.value.trim().toLowerCase();
+            let filteredMovies = allMovies.filter(movie => {
+                const category = String(movie.category || "").trim();
+                const title = String(movie.title || "").toLowerCase();
+                const categoryMatch = selectedCategory === "All" || category === selectedCategory;
+                const searchMatch = !searchText || title.includes(searchText);
+                return categoryMatch && searchMatch;
+            });
 
             movieGrid.innerHTML = "";
-
-
-            movieCount.innerText =
-                filteredMovies.length +
-                (
-                    filteredMovies.length === 1
-                        ? " title"
-                        : " titles"
-                );
-
+            movieCount.innerText = filteredMovies.length + (filteredMovies.length === 1 ? " title" : " titles");
 
             if (filteredMovies.length === 0) {
-
-                emptyMessage.style.display =
-                    "block";
-
+                emptyMessage.style.display = "block";
                 return;
             }
-
-
-            emptyMessage.style.display =
-                "none";
-
+            emptyMessage.style.display = "none";
 
             filteredMovies.forEach(movie => {
-
-                const card =
-                    createMovieCard(movie);
-
+                const card = createMovieCard(movie);
                 movieGrid.appendChild(card);
-
             });
         }
 
-
-        // =================================================
-        // CREATE MOVIE CARD
-        // =================================================
-
         function createMovieCard(movie) {
-
-            const card =
-                document.createElement("div");
-
-            card.className =
-                "movie-card";
-
-
-            const poster =
-                movie.poster_url ||
-                "https://via.placeholder.com/400x600?text=No+Poster";
-
-
-            const title =
-                movie.title ||
-                "Untitled";
-
-
-            const category =
-                movie.category ||
-                "Movie";
-
+            const card = document.createElement("div");
+            card.className = "movie-card";
+            const poster = movie.poster_url || "https://via.placeholder.com/400x600?text=No+Poster";
+            const title = movie.title || "Untitled";
+            const category = movie.category || "Movie";
 
             card.innerHTML = `
-
                 <div class="poster-container">
-
-                    <img
-                        src="${escapeHtml(poster)}"
-                        alt="${escapeHtml(title)}"
-                        loading="lazy"
-                        onerror="this.src='https://via.placeholder.com/400x600?text=No+Poster'"
-                    >
-
-                    <div class="movie-category">
-                        ${escapeHtml(category)}
-                    </div>
-
+                    <img src="${escapeHtml(poster)}" alt="${escapeHtml(title)}" loading="lazy">
+                    <div class="movie-category">${escapeHtml(category)}</div>
                 </div>
-
-
                 <div class="movie-info">
-
-                    <div
-                        class="movie-title"
-                        title="${escapeHtml(title)}"
-                    >
-                        ${escapeHtml(title)}
-                    </div>
-
-
-                    <button
-                        class="play-btn"
-                        type="button"
-                    >
-                        ▶ Play Now
-                    </button>
-
+                    <div class="movie-title">${escapeHtml(title)}</div>
+                    <button class="play-btn" type="button">&#9658; Play Now</button>
                 </div>
             `;
-
-
-            const playButton =
-                card.querySelector(".play-btn");
-
-
-            playButton.addEventListener(
-                "click",
-                () => {
-
-                    openPlayer(movie);
-
-                }
-            );
-
-
+            card.querySelector(".play-btn").addEventListener("click", () => openPlayer(movie));
             return card;
         }
 
-
-        // =================================================
-        // OPEN PLAYER
-        // =================================================
-
         function openPlayer(movie) {
+            playerTitle.innerText = movie.title || "Movie";
 
-            playerTitle.innerText =
-                movie.title || "Movie";
-
-
-            // Reset previous player
+            // Cleanup previous instances
             iframePlayer.src = "";
-
             videoPlayer.pause();
-
             videoPlayer.removeAttribute("src");
+            if (hlsInstance) {
+                hlsInstance.destroy();
+                hlsInstance = null;
+            }
 
-            iframePlayer.style.display =
-                "none";
+            iframePlayer.style.display = "none";
+            videoPlayer.style.display = "none";
+            playerMessage.classList.remove("show");
 
-            videoPlayer.style.display =
-                "none";
-
-            playerMessage.classList.remove(
-                "show"
-            );
-
-
-            // ---------------------------------------------
-            // SOURCE TYPE
-            // ---------------------------------------------
-
-            const sourceType =
-                String(
-                    movie.source_type || ""
-                ).toLowerCase();
-
-
+            const sourceType = String(movie.source_type || "").toLowerCase();
             let source = "";
 
-
-            // ---------------------------------------------
-            // EMBED SOURCE
-            // ---------------------------------------------
-
-            if (
-                sourceType === "embed" &&
-                movie.embed_link
-            ) {
-
-                source =
-                    String(
-                        movie.embed_link
-                    ).trim();
-
-                openIframe(source);
-
+            if (sourceType === "embed" && movie.embed_link) {
+                openIframe(movie.embed_link.trim());
+            } else if (sourceType === "gdrive" || (movie.drive_link && isGoogleDriveUrl(movie.drive_link))) {
+                source = convertGoogleDriveToPreview(movie.drive_link.trim());
+                if (source) openIframe(source);
+                else showPlayerError("Invalid Google Drive link.");
+            } else if (sourceType === "hls" || (movie.drive_link && movie.drive_link.includes(".m3u8"))) {
+                openHlsVideo(movie.drive_link.trim());
+            } else if (movie.drive_link) {
+                openVideo(movie.drive_link.trim());
+            } else if (movie.embed_link) {
+                openIframe(movie.embed_link.trim());
+            } else {
+                showPlayerError("No video source available.");
             }
-
-
-            // ---------------------------------------------
-            // GOOGLE DRIVE
-            // ---------------------------------------------
-
-            else if (
-                sourceType === "gdrive" &&
-                movie.drive_link
-            ) {
-
-                source =
-                    convertGoogleDriveToPreview(
-                        String(
-                            movie.drive_link
-                        ).trim()
-                    );
-
-                if (source) {
-
-                    openIframe(source);
-
-                }
-                else {
-
-                    showPlayerError(
-                        "Invalid Google Drive link."
-                    );
-
-                }
-
-            }
-
-
-            // ---------------------------------------------
-            // AUTOMATIC GOOGLE DRIVE DETECTION
-            // ---------------------------------------------
-
-            else if (
-                movie.drive_link &&
-                isGoogleDriveUrl(
-                    movie.drive_link
-                )
-            ) {
-
-                source =
-                    convertGoogleDriveToPreview(
-                        String(
-                            movie.drive_link
-                        ).trim()
-                    );
-
-                if (source) {
-
-                    openIframe(source);
-
-                }
-                else {
-
-                    showPlayerError(
-                        "Invalid Google Drive link."
-                    );
-
-                }
-
-            }
-
-
-            // ---------------------------------------------
-            // DIRECT VIDEO URL
-            // ---------------------------------------------
-
-            else if (movie.drive_link) {
-
-                source =
-                    String(
-                        movie.drive_link
-                    ).trim();
-
-                openVideo(source);
-
-            }
-
-
-            // ---------------------------------------------
-            // FALLBACK EMBED
-            // ---------------------------------------------
-
-            else if (movie.embed_link) {
-
-                source =
-                    String(
-                        movie.embed_link
-                    ).trim();
-
-                openIframe(source);
-
-            }
-
-
-            // ---------------------------------------------
-            // NOTHING FOUND
-            // ---------------------------------------------
-
-            else {
-
-                showPlayerError(
-                    "No video source has been added for this movie."
-                );
-
-            }
-
 
             playerModal.classList.add("show");
-
-            document.body.style.overflow =
-                "hidden";
+            document.body.style.overflow = "hidden";
         }
-
-
-        // =================================================
-        // OPEN IFRAME
-        // =================================================
 
         function openIframe(url) {
-
             iframePlayer.src = url;
-
-            iframePlayer.style.display =
-                "block";
-
-            videoPlayer.style.display =
-                "none";
+            iframePlayer.style.display = "block";
+            videoPlayer.style.display = "none";
         }
-
-
-        // =================================================
-        // OPEN DIRECT VIDEO
-        // =================================================
 
         function openVideo(url) {
-
+            videoPlayer.style.display = "block";
+            iframePlayer.style.display = "none";
             videoPlayer.src = url;
-
-            videoPlayer.style.display =
-                "block";
-
-            iframePlayer.style.display =
-                "none";
-
-
             videoPlayer.load();
-
-
-            videoPlayer.play()
-                .catch(() => {
-                    // Browser may block autoplay.
-                    // User can press Play.
-                });
-
-
-            videoPlayer.onerror = () => {
-
-                showPlayerError(
-                    "This direct video link cannot be played by the browser."
-                );
-
-            };
-
+            videoPlayer.play().catch(() => {});
+            videoPlayer.onerror = () => showPlayerError("Direct video link cannot be played.");
         }
 
+        function openHlsVideo(url) {
+            videoPlayer.style.display = "block";
+            iframePlayer.style.display = "none";
 
-        // =================================================
-        // GOOGLE DRIVE URL CONVERTER
-        // =================================================
+            if (Hls.isSupported()) {
+                hlsInstance = new Hls();
+                hlsInstance.loadSource(url);
+                hlsInstance.attachMedia(videoPlayer);
+                hlsInstance.on(Hls.Events.MANIFEST_PARSED, () => {
+                    videoPlayer.play().catch(() => {});
+                });
+                hlsInstance.on(Hls.Events.ERROR, (event, data) => {
+                    if (data.fatal) {
+                        showPlayerError("HLS stream playback failed.");
+                    }
+                });
+            } else if (videoPlayer.canPlayType('application/vnd.apple.mpegurl')) {
+                // Native HLS support for Safari / iOS
+                videoPlayer.src = url;
+                videoPlayer.addEventListener('loadedmetadata', () => {
+                    videoPlayer.play().catch(() => {});
+                });
+            } else {
+                showPlayerError("HLS is not supported in this browser.");
+            }
+        }
 
         function convertGoogleDriveToPreview(url) {
-
-            if (!url) {
-                return "";
-            }
-
-
-            // Already preview URL
-            if (
-                url.includes(
-                    "drive.google.com/file/"
-                ) &&
-                url.includes("/preview")
-            ) {
-
-                return url;
-            }
-
-
-            // Extract file ID from:
-            //
-            // https://drive.google.com/file/d/FILE_ID/view
-            //
-
-            let match =
-                url.match(
-                    /drive\.google\.com\/file\/d\/([^/]+)/
-                );
-
-
-            if (match && match[1]) {
-
-                const fileId =
-                    match[1];
-
-                return (
-                    "https://drive.google.com/file/d/" +
-                    encodeURIComponent(fileId) +
-                    "/preview"
-                );
-            }
-
-
-            // Extract ID from open?id=FILE_ID
-            //
-
-            match =
-                url.match(
-                    /[?&]id=([^&]+)/
-                );
-
-
-            if (match && match[1]) {
-
-                const fileId =
-                    match[1];
-
-                return (
-                    "https://drive.google.com/file/d/" +
-                    encodeURIComponent(fileId) +
-                    "/preview"
-                );
-            }
-
-
+            if (!url) return "";
+            if (url.includes("drive.google.com/file/") && url.includes("/preview")) return url;
+            let match = url.match(/drive\.google\.com\/file\/d\/([^/]+)/);
+            if (match && match[1]) return "https://drive.google.com/file/d/" + encodeURIComponent(match[1]) + "/preview";
+            match = url.match(/[?&]id=([^&]+)/);
+            if (match && match[1]) return "https://drive.google.com/file/d/" + encodeURIComponent(match[1]) + "/preview";
             return "";
         }
 
-
-        // =================================================
-        // CHECK GOOGLE DRIVE
-        // =================================================
-
         function isGoogleDriveUrl(url) {
-
-            if (!url) {
-                return false;
-            }
-
-            return (
-                url.includes(
-                    "drive.google.com"
-                ) ||
-                url.includes(
-                    "docs.google.com"
-                )
-            );
+            return url && (url.includes("drive.google.com") || url.includes("docs.google.com"));
         }
-
-
-        // =================================================
-        // PLAYER ERROR
-        // =================================================
 
         function showPlayerError(message) {
-
-            iframePlayer.style.display =
-                "none";
-
-            videoPlayer.style.display =
-                "none";
-
-            playerMessageText.innerText =
-                message;
-
-            playerMessage.classList.add(
-                "show"
-            );
+            iframePlayer.style.display = "none";
+            videoPlayer.style.display = "none";
+            playerMessageText.innerText = message;
+            playerMessage.classList.add("show");
         }
-
-
-        // =================================================
-        // CLOSE PLAYER
-        // =================================================
 
         function closeMoviePlayer() {
-
             iframePlayer.src = "";
-
             videoPlayer.pause();
-
             videoPlayer.removeAttribute("src");
-
-            videoPlayer.load();
-
-            playerModal.classList.remove(
-                "show"
-            );
-
-            document.body.style.overflow =
-                "";
+            if (hlsInstance) {
+                hlsInstance.destroy();
+                hlsInstance = null;
+            }
+            playerModal.classList.remove("show");
+            document.body.style.overflow = "";
         }
 
+        closePlayer.addEventListener("click", closeMoviePlayer);
+        playerModal.addEventListener("click", (e) => { if (e.target === playerModal) closeMoviePlayer(); });
+        document.addEventListener("keydown", (e) => { if (e.key === "Escape" && playerModal.classList.contains("show")) closeMoviePlayer(); });
+        searchInput.addEventListener("input", renderMovies);
 
-        closePlayer.addEventListener(
-            "click",
-            closeMoviePlayer
-        );
-
-
-        // Close when clicking outside player
-        playerModal.addEventListener(
-            "click",
-            function(event) {
-
-                if (
-                    event.target ===
-                    playerModal
-                ) {
-
-                    closeMoviePlayer();
-
-                }
-
-            }
-        );
-
-
-        // Close with Escape key
-        document.addEventListener(
-            "keydown",
-            function(event) {
-
-                if (
-                    event.key === "Escape" &&
-                    playerModal.classList.contains(
-                        "show"
-                    )
-                ) {
-
-                    closeMoviePlayer();
-
-                }
-
-            }
-        );
-
-
-        // =================================================
-        // SEARCH
-        // =================================================
-
-        searchInput.addEventListener(
-            "input",
-            function() {
-
+        document.querySelectorAll(".category-btn").forEach(button => {
+            button.addEventListener("click", function() {
+                document.querySelectorAll(".category-btn").forEach(btn => btn.classList.remove("active"));
+                this.classList.add("active");
+                selectedCategory = this.dataset.category;
                 renderMovies();
-
-            }
-        );
-
-
-        // =================================================
-        // CATEGORY BUTTONS
-        // =================================================
-
-        document
-            .querySelectorAll(".category-btn")
-            .forEach(button => {
-
-                button.addEventListener(
-                    "click",
-                    function() {
-
-                        document
-                            .querySelectorAll(
-                                ".category-btn"
-                            )
-                            .forEach(btn => {
-
-                                btn.classList.remove(
-                                    "active"
-                                );
-
-                            });
-
-
-                        this.classList.add(
-                            "active"
-                        );
-
-
-                        selectedCategory =
-                            this.dataset.category;
-
-
-                        renderMovies();
-
-                    }
-                );
-
             });
-
-
-        // =================================================
-        // HTML ESCAPE
-        // =================================================
+        });
 
         function escapeHtml(value) {
-
-            return String(value)
-                .replace(
-                    /&/g,
-                    "&amp;"
-                )
-                .replace(
-                    /</g,
-                    "&lt;"
-                )
-                .replace(
-                    />/g,
-                    "&gt;"
-                )
-                .replace(
-                    /"/g,
-                    "&quot;"
-                )
-                .replace(
-                    /'/g,
-                    "&#039;"
-                );
+            return String(value).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
         }
 
-
-        // =================================================
-        // START WEBSITE
-        // =================================================
-
         loadMovies();
-
     </script>
-
 </body>
 </html>

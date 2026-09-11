@@ -91,7 +91,7 @@ db.query("SELECT 1 AS ok", (err, result) => {
 
         console.error("");
         console.error("======================================");
-        console.error("     DATABASE CONNECTION FAILED");
+        console.error("    DATABASE CONNECTION FAILED");
         console.error("======================================");
         console.error("Error Code:", err.code);
         console.error("Error Message:", err.message);
@@ -103,7 +103,7 @@ db.query("SELECT 1 AS ok", (err, result) => {
 
         console.log("");
         console.log("======================================");
-        console.log("     DATABASE CONNECTED SUCCESSFULLY");
+        console.log("    DATABASE CONNECTED SUCCESSFULLY");
         console.log("======================================");
         console.log("TiDB Cloud connection is working.");
         console.log("======================================");
@@ -168,7 +168,7 @@ app.post("/api/admin-login", (req, res) => {
 
             console.error("");
             console.error("======================================");
-            console.error("     ADMIN LOGIN DATABASE ERROR");
+            console.error("    ADMIN LOGIN DATABASE ERROR");
             console.error("======================================");
             console.error("Error Code:", err.code);
             console.error("Error Message:", err.message);
@@ -324,20 +324,16 @@ app.post("/api/upload-content", (req, res) => {
     let sourceType = uploadType || "link";
 
     if (uploadType === "link") {
-
         finalDriveLink = String(drive_link || "").trim();
-
     } else if (uploadType === "embed") {
-
         finalEmbedLink = String(embed_link || "").trim();
-
     } else if (uploadType === "gdrive") {
-
         finalDriveLink = String(drive_link || "").trim();
         sourceType = "gdrive";
-
+    } else if (uploadType === "hls") {
+        finalDriveLink = String(drive_link || "").trim();
+        sourceType = "hls";
     } else {
-
         finalDriveLink = String(drive_link || "").trim();
         finalEmbedLink = String(embed_link || "").trim();
     }
